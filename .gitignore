@@ -2,8 +2,8 @@
 airbus-ship-detection*
 input
 output
-working
 medium
+*.h5
 
 # PYTHON
 # Byte-compiled / optimized / DLL files
