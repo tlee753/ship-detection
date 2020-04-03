@@ -1,0 +1,8 @@
+numpy
+pandas
+matplotlib
+scikit-image
+ipython
+sklearn
+tensorflow==1.13.1
+keras==2.2.4
