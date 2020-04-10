@@ -63,8 +63,7 @@ def rle_decode(mask_rle, shape=SHAPE):
 # Split Test and Validation datasets
 # ==================================
 
-masks['ships'] = masks['EncodedPixels'].map(
-    lambda encoded_pixels: 1 if isinstance(encoded_pixels, str) else 0)
+masks['ships'] = masks['EncodedPixels'].map(lambda encoded_pixels: 1 if isinstance(encoded_pixels, str) else 0)
 
 start_time = time.time()
 unique_img_ids = masks.groupby('ImageId').agg({'ships': 'sum'})
