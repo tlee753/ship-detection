@@ -97,12 +97,6 @@ def shows_decode_encode(image_id, path=TRAIN_DATA_PATH):
           'RLE_1:', len(rle_2))
 
 
-shows_decode_encode('000155de5.jpg')
-shows_decode_encode('00003e153.jpg')
-print('It could be different when there is no mask.')
-shows_decode_encode('00021ddc3.jpg')
-print('It could be different when there are masks overlapped.')
-
 # ==================================
 # Split Test and Validation datasets
 # ==================================
@@ -126,22 +120,6 @@ train_ids, val_ids = train_test_split(unique_img_ids,
                                       stratify=unique_img_ids['ships'])
 print(train_ids.shape[0], 'training masks')
 print(val_ids.shape[0], 'validation masks')
-# train_ids['ships'].hist()
-# val_ids['ships'].hist()
-
-UPDATE_MASK_RCNN = False
-
-os.chdir(WORKING_DIR)
-if UPDATE_MASK_RCNN:
-    os.system("rm - rf {MASK_RCNN_PATH}")
-
-if not os.path.exists(MASK_RCNN_PATH):
-    os.system("wget https: // github.com/matterport/Mask_RCNN/archive/master.zip - O Mask_RCNN-master.zip")
-    os.system("unzip Mask_RCNN-master.zip 'Mask_RCNN-master/mrcnn/*'")
-    os.system("rm Mask_RCNN-master.zip")
-
-sys.path.append(MASK_RCNN_PATH)
-
 
 class AirbusShipDetectionChallengeDataset(utils.Dataset):
     def __init__(self, image_file_dir, ids, masks, image_width=IMAGE_WIDTH, image_height=IMAGE_HEIGHT):
@@ -204,7 +182,7 @@ class AirbusShipDetectionChallengeGPUConfig(Config):
 
 
 config = AirbusShipDetectionChallengeGPUConfig()
-config.display()
+# config.display()
 
 # =================================
 # Prepare and Load Training Dataset
@@ -217,53 +195,8 @@ dataset_train.prepare()
 dataset_val = AirbusShipDetectionChallengeDataset(
     image_file_dir=TRAIN_DATA_PATH, ids=val_ids, masks=masks)
 dataset_val.prepare()
-
-image_ids = np.random.choice(dataset_train.image_ids, 3)
-for image_id in image_ids:
-    image = dataset_train.load_image(image_id)
-    mask, class_ids = dataset_train.load_mask(image_id)
-    visualize.display_top_masks(
-        image, mask, class_ids, dataset_train.class_names, limit=1)
-
 end_time = time.time() - start_time
 print("dataset prepare: {}".format(end_time))
-
-# ========================
-# Load pre-trained weights
-# ========================
-
-start_time = time.time()
-model = modellib.MaskRCNN(
-    mode="training", config=config, model_dir=WORKING_DIR)
-
-try:
-    weights_path = model.find_last()
-    load_weights = True
-except FileNotFoundError:
-    load_weights = True
-    weights_path = COCO_WEIGHTS_PATH
-    utils.download_trained_weights(weights_path)
-
-if load_weights:
-    print("Loading weights: ", weights_path)
-    model.load_weights(weights_path, by_name=True, exclude=[
-        "mrcnn_class_logits", "mrcnn_bbox_fc",
-        "mrcnn_bbox", "mrcnn_mask"])
-
-end_time = time.time() - start_time
-print("loading weights: {}".format(end_time))
-
-# ===============
-# Train the model
-# ===============
-
-start_time = time.time()
-#model.train(dataset_train, dataset_val,
-#            learning_rate=config.LEARNING_RATE * 1.5,
-#            epochs=5,
-#            layers='all')
-end_time = time.time() - start_time
-print("Train model: {}".format(end_time))
 
 # ============
 # Interference
@@ -279,7 +212,6 @@ infer_model = modellib.MaskRCNN(mode="inference",
                                 config=inference_config,
                                 model_dir=WORKING_DIR)
 
-#model_path = infer_model.find_last()
 model_path = "/home/ubuntu/tyler/ship-detection/working/asdc_gpu20200406T0810/mask_rcnn_asdc_gpu_0005.h5"
 
 print("Loading weights from ", model_path)
@@ -305,7 +237,7 @@ r = results[0]
 visualize.display_instances(original_image, r['rois'], r['masks'], r['class_ids'],
                             dataset_val.class_names, r['scores'])
 
-image_ids = np.random.choice(dataset_val.image_ids, 20)
+image_ids = np.random.choice(dataset_val.image_ids, 1)
 APs = []
 inference_start = time.time()
 for image_id in image_ids:
@@ -324,6 +256,7 @@ for image_id in image_ids:
                          r["rois"], r["class_ids"], r["scores"], r['masks'])
     APs.append(AP)
 
-inference_end = time.time()
-print('Inference Time: %0.2f Minutes' % ((inference_end - inference_start)/60))
 print("mAP: ", np.mean(APs))
+print("precision: ", precisions)
+print("recalls: ", recalls)
+print("overlaps: ", overlaps)

@@ -1,3 +1,6 @@
+import os
+import time
+import sys
 import errno
 from mrcnn.model import log
 from mrcnn import visualize
@@ -11,22 +14,13 @@ import matplotlib.pyplot as plt
 from skimage.morphology import label
 from skimage.io import imread
 
-import os
-import time
-import sys
-
 TRAINING_VALIDATION_RATIO = 0.2
 WORKING_DIR = '../working'
 INPUT_DIR = '../input'
-OUTPUT_DIR = '../output'
-LOGS_DIR = os.path.join(WORKING_DIR, "logs")
 TRAIN_DATA_PATH = os.path.join(INPUT_DIR, 'train_v2')
 TEST_DATA_PATH = os.path.join(INPUT_DIR, 'test_v2')
-SAMPLE_SUBMISSION_PATH = os.path.join(INPUT_DIR, 'sample_submission_v2.csv')
 TRAIN_SHIP_SEGMENTATIONS_PATH = os.path.join(
     INPUT_DIR, 'train_ship_segmentations_v2.csv')
-MASK_RCNN_PATH = os.path.join(WORKING_DIR, 'Mask_RCNN-master')
-COCO_WEIGHTS_PATH = os.path.join(WORKING_DIR, "mask_rcnn_coco.h5")
 SHIP_CLASS_NAME = 'ship'
 IMAGE_WIDTH = 768
 IMAGE_HEIGHT = 768
@@ -44,11 +38,9 @@ print(TRAIN_SHIP_SEGMENTATIONS_PATH)
 masks = pd.read_csv(TRAIN_SHIP_SEGMENTATIONS_PATH)
 masks.head()
 
-
 def multi_rle_encode(img):
     labels = label(img[:, :, 0])
     return [rle_encode(labels == k) for k in np.unique(labels[labels > 0])]
-
 
 def rle_encode(img):
     pixels = img.T.flatten()
@@ -56,7 +48,6 @@ def rle_encode(img):
     runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
     runs[1::2] -= runs[::2]
     return ' '.join(str(x) for x in runs)
-
 
 def rle_decode(mask_rle, shape=SHAPE):
     s = mask_rle.split()
@@ -68,41 +59,6 @@ def rle_decode(mask_rle, shape=SHAPE):
         img[lo:hi] = 1
     return img.reshape(shape).T
 
-
-def masks_as_image(in_mask_list, shape=SHAPE):
-    all_masks = np.zeros(shape, dtype=np.int16)
-    for mask in in_mask_list:
-        if isinstance(mask, str):
-            all_masks += rle_decode(mask)
-    return np.expand_dims(all_masks, -1)
-
-
-def shows_decode_encode(image_id, path=TRAIN_DATA_PATH):
-    fig, axarr = plt.subplots(1, 3, figsize=(10, 5))
-    img_0 = imread(os.path.join(path, image_id))
-    axarr[0].imshow(img_0)
-    axarr[0].set_title(image_id)
-    rle_1 = masks.query('ImageId=="{}"'.format(image_id))['EncodedPixels']
-    img_1 = masks_as_image(rle_1)
-    axarr[1].imshow(img_1[:, :, 0])
-    axarr[1].set_title('Ship Mask')
-    rle_2 = multi_rle_encode(img_1)
-    img_2 = masks_as_image(rle_2)
-    axarr[2].imshow(img_0)
-    axarr[2].imshow(img_2[:, :, 0], alpha=0.3)
-    axarr[2].set_title('Encoded & Decoded Mask')
-    # plt.show()
-    print(image_id, ' Check Decoding->Encoding',
-          'RLE_0:', len(rle_1), '->',
-          'RLE_1:', len(rle_2))
-
-
-shows_decode_encode('000155de5.jpg')
-shows_decode_encode('00003e153.jpg')
-print('It could be different when there is no mask.')
-shows_decode_encode('00021ddc3.jpg')
-print('It could be different when there are masks overlapped.')
-
 # ==================================
 # Split Test and Validation datasets
 # ==================================
@@ -112,13 +68,11 @@ masks['ships'] = masks['EncodedPixels'].map(
 
 start_time = time.time()
 unique_img_ids = masks.groupby('ImageId').agg({'ships': 'sum'})
-unique_img_ids['RleMaskList'] = masks.groupby(
-    'ImageId')['EncodedPixels'].apply(list)
+unique_img_ids['RleMaskList'] = masks.groupby('ImageId')['EncodedPixels'].apply(list)
 unique_img_ids = unique_img_ids.reset_index()
 end_time = time.time() - start_time
 print("unique_img_ids groupby took: {}".format(end_time))
 unique_img_ids = unique_img_ids[unique_img_ids['ships'] > 0]
-# unique_img_ids['ships'].hist()
 unique_img_ids.sample(3)
 
 train_ids, val_ids = train_test_split(unique_img_ids,
@@ -126,22 +80,6 @@ train_ids, val_ids = train_test_split(unique_img_ids,
                                       stratify=unique_img_ids['ships'])
 print(train_ids.shape[0], 'training masks')
 print(val_ids.shape[0], 'validation masks')
-# train_ids['ships'].hist()
-# val_ids['ships'].hist()
-
-UPDATE_MASK_RCNN = False
-
-os.chdir(WORKING_DIR)
-if UPDATE_MASK_RCNN:
-    os.system("rm - rf {MASK_RCNN_PATH}")
-
-if not os.path.exists(MASK_RCNN_PATH):
-    os.system("wget https: // github.com/matterport/Mask_RCNN/archive/master.zip - O Mask_RCNN-master.zip")
-    os.system("unzip Mask_RCNN-master.zip 'Mask_RCNN-master/mrcnn/*'")
-    os.system("rm Mask_RCNN-master.zip")
-
-sys.path.append(MASK_RCNN_PATH)
-
 
 class AirbusShipDetectionChallengeDataset(utils.Dataset):
     def __init__(self, image_file_dir, ids, masks, image_width=IMAGE_WIDTH, image_height=IMAGE_HEIGHT):
@@ -187,12 +125,10 @@ class AirbusShipDetectionChallengeDataset(utils.Dataset):
         else:
             super(self.__class__, self).image_reference(image_id)
 
-
 class AirbusShipDetectionChallengeGPUConfig(Config):
     NAME = 'ASDC_GPU'
     GPU_COUNT = 1
     IMAGES_PER_GPU = 2
-
     NUM_CLASSES = 2
     IMAGE_MIN_DIM = IMAGE_WIDTH
     IMAGE_MAX_DIM = IMAGE_WIDTH
@@ -202,9 +138,7 @@ class AirbusShipDetectionChallengeGPUConfig(Config):
     DETECTION_MIN_CONFIDENCE = 0.95
     DETECTION_NMS_THRESHOLD = 0.05
 
-
 config = AirbusShipDetectionChallengeGPUConfig()
-config.display()
 
 # =================================
 # Prepare and Load Training Dataset
@@ -212,58 +146,17 @@ config.display()
 
 start_time = time.time()
 dataset_train = AirbusShipDetectionChallengeDataset(
-    image_file_dir=TRAIN_DATA_PATH, ids=train_ids, masks=masks)
+    image_file_dir=TRAIN_DATA_PATH,
+    ids=train_ids,
+    masks=masks)
 dataset_train.prepare()
 dataset_val = AirbusShipDetectionChallengeDataset(
-    image_file_dir=TRAIN_DATA_PATH, ids=val_ids, masks=masks)
+    image_file_dir=TRAIN_DATA_PATH,
+    ids=val_ids,
+    masks=masks)
 dataset_val.prepare()
-
-image_ids = np.random.choice(dataset_train.image_ids, 3)
-for image_id in image_ids:
-    image = dataset_train.load_image(image_id)
-    mask, class_ids = dataset_train.load_mask(image_id)
-    visualize.display_top_masks(
-        image, mask, class_ids, dataset_train.class_names, limit=1)
-
 end_time = time.time() - start_time
 print("dataset prepare: {}".format(end_time))
-
-# ========================
-# Load pre-trained weights
-# ========================
-
-start_time = time.time()
-model = modellib.MaskRCNN(
-    mode="training", config=config, model_dir=WORKING_DIR)
-
-try:
-    weights_path = model.find_last()
-    load_weights = True
-except FileNotFoundError:
-    load_weights = True
-    weights_path = COCO_WEIGHTS_PATH
-    utils.download_trained_weights(weights_path)
-
-if load_weights:
-    print("Loading weights: ", weights_path)
-    model.load_weights(weights_path, by_name=True, exclude=[
-        "mrcnn_class_logits", "mrcnn_bbox_fc",
-        "mrcnn_bbox", "mrcnn_mask"])
-
-end_time = time.time() - start_time
-print("loading weights: {}".format(end_time))
-
-# ===============
-# Train the model
-# ===============
-
-start_time = time.time()
-#model.train(dataset_train, dataset_val,
-#            learning_rate=config.LEARNING_RATE * 1.5,
-#            epochs=5,
-#            layers='all')
-end_time = time.time() - start_time
-print("Train model: {}".format(end_time))
 
 # ============
 # Interference
@@ -273,13 +166,11 @@ class InferenceConfig(AirbusShipDetectionChallengeGPUConfig):
     GPU_COUNT = 1
     IMAGES_PER_GPU = 1
 
-
 inference_config = InferenceConfig()
 infer_model = modellib.MaskRCNN(mode="inference",
                                 config=inference_config,
                                 model_dir=WORKING_DIR)
 
-#model_path = infer_model.find_last()
 model_path = "/home/ubuntu/tyler/ship-detection/working/asdc_gpu20200406T0810/mask_rcnn_asdc_gpu_0005.h5"
 
 print("Loading weights from ", model_path)
@@ -296,34 +187,23 @@ log("gt_class_id", gt_class_id)
 log("gt_bbox", gt_bbox)
 log("gt_mask", gt_mask)
 
-visualize.display_instances(original_image, gt_bbox, gt_mask, gt_class_id,
-                            dataset_train.class_names, figsize=(8, 8))
-
-results = infer_model.detect([original_image], verbose=1)
-
-r = results[0]
-visualize.display_instances(original_image, r['rois'], r['masks'], r['class_ids'],
-                            dataset_val.class_names, r['scores'])
-
-image_ids = np.random.choice(dataset_val.image_ids, 20)
+image_ids = np.random.choice(dataset_val.image_ids, 1)
 APs = []
 inference_start = time.time()
 for image_id in image_ids:
+    print("image_id: ", image_id)
+    print("image_meta: ", image_meta)
     image, image_meta, gt_class_id, gt_bbox, gt_mask =\
-        modellib.load_image_gt(dataset_val, inference_config,
-                               image_id, use_mini_mask=False)
-    molded_images = np.expand_dims(
-        modellib.mold_image(image, inference_config), 0)
+        modellib.load_image_gt(dataset_val, inference_config, image_id, use_mini_mask=False)
+    print("image: ", image)
+    molded_images = np.expand_dims(modellib.mold_image(image, inference_config), 0)
     results = infer_model.detect([image], verbose=1)
     r = results[0]
     visualize.display_instances(image, r['rois'], r['masks'], r['class_ids'],
                                 dataset_val.class_names, r['scores'])
 
     AP, precisions, recalls, overlaps =\
-        utils.compute_ap(gt_bbox, gt_class_id, gt_mask,
-                         r["rois"], r["class_ids"], r["scores"], r['masks'])
+        utils.compute_ap(gt_bbox, gt_class_id, gt_mask, r["rois"], r["class_ids"], r["scores"], r['masks'])
     APs.append(AP)
 
-inference_end = time.time()
-print('Inference Time: %0.2f Minutes' % ((inference_end - inference_start)/60))
 print("mAP: ", np.mean(APs))
