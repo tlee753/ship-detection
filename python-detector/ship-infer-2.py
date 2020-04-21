@@ -170,7 +170,7 @@ infer_model = modellib.MaskRCNN(mode="inference",
                                 config=inference_config,
                                 model_dir=WORKING_DIR)
 
-model_path = "/home/ubuntu/tyler/ship-detection/working/asdc_gpu20200406T0810/mask_rcnn_asdc_gpu_0005.h5"
+model_path = "./model-1.h5"
 
 print("Loading weights from ", model_path)
 infer_model.load_weights(model_path, by_name=True)
@@ -192,15 +192,14 @@ inference_start = time.time()
 for image_id in image_ids:
     print("image_id: ", image_id)
     print("image_meta: ", image_meta)
+    print("image ref: ", dataset_val.image_reference(image_id))
     image, image_meta, gt_class_id, gt_bbox, gt_mask =\
         modellib.load_image_gt(dataset_val, inference_config, image_id, use_mini_mask=False)
-    print("image: ", image)
     molded_images = np.expand_dims(modellib.mold_image(image, inference_config), 0)
     results = infer_model.detect([image], verbose=1)
     r = results[0]
     visualize.display_instances(image, r['rois'], r['masks'], r['class_ids'],
                                 dataset_val.class_names, r['scores'])
-
     AP, precisions, recalls, overlaps =\
         utils.compute_ap(gt_bbox, gt_class_id, gt_mask, r["rois"], r["class_ids"], r["scores"], r['masks'])
     APs.append(AP)

@@ -1,6 +1,9 @@
 numpy
 pandas
+utils
+Pillow
 mrcnn
+cython
 matplotlib
 scikit-image
 ipython
