@@ -1,4 +1,4 @@
-# Ship-detection
+# Ship Detection
 - Ship detection using scikit learn
 - Code is modified from a medium article, dataset is from kaggle ship detection challenge, sources will be added when I have time
 
@@ -18,5 +18,5 @@
 1. Build docker container
 2. Run docker container 
 
-![Detection](./python/output/596b97e57-detect.jpg)
+![Detection](./python/output/596b97e57-detected.jpg)
 
