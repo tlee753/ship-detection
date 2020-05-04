@@ -1,8 +1,5 @@
 # SHIP DETECTION
 airbus-ship-detection*
-input
-output
-medium
 *.h5
 
 # PYTHON
