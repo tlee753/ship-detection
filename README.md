@@ -2,6 +2,10 @@
 - Ship detection using scikit learn
 - Code is modified from a medium article, dataset is from kaggle ship detection challenge, sources will be added when I have time
 
+### Model
+- pretrained image model
+- [Model Link](https://drive.google.com/open?id=1gotjrrnmT3t86_9RVKOlnWjAqWTgpgn_)
+
 ### Python
 1. Set up virtual environment
 2. Install requirements
