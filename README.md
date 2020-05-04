@@ -12,6 +12,8 @@
 3. Download model
 4. Run ship infererence scripts
 
+`pip install https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-1.13.1-py3-none-any.whl`
+
 ### Docker
 1. Build docker container
 2. Run docker container 
