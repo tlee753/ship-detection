@@ -3,8 +3,7 @@
 - Code is modified from a medium article, dataset is from kaggle ship detection challenge, sources will be added when I have time
 
 ### Model
-- pretrained image model
-- [Model Link](https://drive.google.com/open?id=1gotjrrnmT3t86_9RVKOlnWjAqWTgpgn_)
+- [Pretrained Image Model Link](https://drive.google.com/open?id=1gotjrrnmT3t86_9RVKOlnWjAqWTgpgn_)
 
 ### Python
 1. Set up virtual environment
@@ -18,5 +17,8 @@
 1. Build docker container
 2. Run docker container 
 
-![Detection](./python/output/596b97e57-detected.jpg)
+---
+
+![Example 1](./python/output/596b97e57-detected.jpg)
+![Example 2](./python/output/08f3f627a-detected.jpg)
 
