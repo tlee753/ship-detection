@@ -1,5 +1,5 @@
 # Ship Detection
-- Ship detection using scikit learn
+- Ship detection from satellite imagery using `tensorflow` and `mrcnn`
 - Code is modified from a medium article, dataset is from kaggle ship detection challenge, sources will be added when I have time
 
 ### Model
@@ -21,4 +21,5 @@
 
 ![Example 1](./python/output/596b97e57-detected.jpg)
 ![Example 2](./python/output/08f3f627a-detected.jpg)
+![Example 3](./python/output/b54923d5e-detected.jpg)
 
