@@ -12,4 +12,5 @@
 1. Build docker container
 2. Run docker container 
 
-![Detection](./python/detections/596b97e57-detect.jpg
+![Detection](./python/detections/596b97e57-detect.jpg)
+
