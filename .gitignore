@@ -1,5 +1,6 @@
 # SHIP DETECTION
 airbus-ship-detection*
+working
 *.h5
 
 # PYTHON
