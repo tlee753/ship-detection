@@ -7,12 +7,18 @@
 
 ### Python
 1. Set up virtual environment
+    - `cd python`
+    - `conda/pipenv/virtualenv` depending on your preference
 2. Install requirements
+    - `pip install -r requirements.txt`
 3. Download model and place in python directory
+    - Download trained model above
 4. Run ship infererence scripts
     - `ship-infer-1.py` for training
     - `ship-infer-5.py` for single file running
     - `ship-infer-8.py` for input directory running all example files in directory
+        - run this for a demo
+        - output files in output directory
 
 For problems installing tensorflow, try the following:
 
