@@ -12,9 +12,10 @@
 4. Run ship infererence scripts
     - `ship-infer-1.py` for training
     - `ship-infer-5.py` for single file running
-    - `ship-infer-8.py` for input directory running all files
+    - `ship-infer-8.py` for input directory running all example files in directory
 
-For problems install tensorflow try the follow:
+For problems installing tensorflow, try the following:
+
 `pip install https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-1.15.2-py3-none-any.whl`
 
 ### Docker
