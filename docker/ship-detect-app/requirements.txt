@@ -8,5 +8,5 @@ matplotlib
 scikit-image
 ipython
 sklearn
-tensorflow==1.13.1
+tensorflow==2.5.3
 keras==2.2.4
